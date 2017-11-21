@@ -1,13 +1,13 @@
 {
   "name": "@watchmen/mongo-data",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "mongo crud stuff",
   "main": "dist/index.js",
   "repository": "the-watchmen/node-mongo-data",
   "license": "ISC",
   "scripts": {
     "ava": "cross-env NODE_ENV=auto ava -s test/ava",
-    "ava-debug": "cross-env DEBUG=test:*,app:* NODE_ENV=auto ava -s",
+    "ava-debug": "cross-env DEBUG=test:*,lib:* NODE_ENV=auto ava -s",
     "pretest": "xo",
     "test": "npm run ava",
     "prebuild": "npm run test",

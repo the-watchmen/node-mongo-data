@@ -1,7 +1,7 @@
 import changesPostUpdateHook from './changes-post-update-hook'
 import constants from './constants'
 import createEventHook from './create-event-hook'
-import createDataHook from './created-data-hook'
+import createdDataHook from './created-data-hook'
 import getData from './data'
 import getEmbedHooks from './mongo-embed-helper'
 import postDeleteHook from './post-delete-hook'
@@ -13,7 +13,7 @@ export {
   changesPostUpdateHook,
   constants,
   createEventHook,
-  createDataHook,
+  createdDataHook,
   getData,
   getEmbedHooks,
   postDeleteHook,
