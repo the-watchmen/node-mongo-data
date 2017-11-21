@@ -7,8 +7,6 @@ import {pretty, getType, getWithTypes, stringify} from '@watchmen/helpr'
 import {registerEvent, getName, runHook, getSyntheticResult} from './helper'
 import constants from './constants'
 
-// const dbg = debug('lib:mongo-data')
-
 const mileToMeterMultiplier = 0.00062137
 const nearMilesDefault = 10
 const maxLimit = _.get(config, 'framework.data.maxLimit', 200)
@@ -16,7 +14,7 @@ const defaultLimit = _.get(config, 'framework.data.defaultLimit', 10)
 const {MODES} = constants
 
 export default function(opts) {
-  const dbg = debug(`app:shared:data(${getName(opts)})`)
+  const dbg = debug(`lib:mongo-data(${getName(opts)})`)
 
   function getGet({collectionName, docField, useStepsForGet}) {
     return async function(id) {
