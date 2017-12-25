@@ -3,9 +3,6 @@ module.exports = {
   env: {
     es6: true
   },
-  ecmaFeatures: {
-    modules: true
-  },
   plugins: ['prettier'],
   rules: {
     'unicorn/no-abusive-eslint-disable': 'off',

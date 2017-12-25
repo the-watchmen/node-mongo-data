@@ -246,21 +246,19 @@ export async function captureDataChange({
   return result
 }
 
-export function getContextDate(context) {
+export function getContextDate({context}) {
   return context.date || new Date()
 }
 
-export function getContextUser(context) {
-  dbg('get-context-user: context=%o', context)
-  return {
-    _id: _.get(context, constants.CONTEXT_USER_ID),
-    name: _.get(context, constants.CONTEXT_USER_NAME)
-  }
+export function getContextUser({context}) {
+  // presumably user is set by https://github.com/auth0/express-jwt,
+  // but app can tweak value of user at the express level...
+  return context.user
 }
 
-export async function getChanged({context}) {
+export function getChanged({context}) {
   return deepClean({
-    date: getContextDate(context),
-    user: getContextUser(context)
+    date: getContextDate({context}),
+    user: getContextUser({context})
   })
 }
