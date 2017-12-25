@@ -2,8 +2,8 @@ import assert from 'assert'
 import _ from 'lodash'
 import debug from 'debug'
 import config from 'config'
-import {getDb, parseParam, findOne, toDotNotation} from '@watchmen/mongo-helpr'
-import {pretty, getType, getWithTypes, stringify} from '@watchmen/helpr'
+import {getDb, parseParam, findOne, oid} from '@watchmen/mongo-helpr'
+import {pretty, getType, getWithTypes, stringify, toDotNotation} from '@watchmen/helpr'
 import {registerEvent, getName, runHook, getSyntheticResult} from './helper'
 import constants from './constants'
 
@@ -19,7 +19,9 @@ export default function(opts) {
   function getGet({collectionName, docField, useStepsForGet}) {
     return async function(id) {
       dbg('get: id=%o, type=%o', id, getType(id))
-      const query = _.isPlainObject(id) ? id : {[constants.ID_FIELD]: id}
+      const query = _.isPlainObject(id)
+        ? id
+        : {[constants.ID_FIELD]: opts.isOid ? oid({value: id}) : id}
       if (useStepsForGet) {
         assert(!docField, 'docField is not compatible with useStepsForGet')
         const _steps = await getSteps({opts: _.omit(opts, 'queryHook'), query})

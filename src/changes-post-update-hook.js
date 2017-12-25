@@ -2,7 +2,7 @@ import assert from 'assert'
 import _ from 'lodash'
 import debug from 'debug'
 import {join, stringify} from '@watchmen/helpr'
-import {getChanged, getContextDate, getContextUser, getName, captureDataChange} from './helper'
+import {getChanged, getName, captureDataChange} from './helper'
 
 const dbg = debug('lib:mongo-data:changes-post-update-hook')
 
@@ -21,7 +21,7 @@ export default async function({result, filter, context, opts, db, update}) {
 
   if (result.upsertedCount || result.modifiedCount) {
     const {path} = result
-    const changed = await getChanged({context})
+    const changed = getChanged({context})
 
     if (result.upsertedCount) {
       $set[join([path, 'created'])] = changed
@@ -41,10 +41,9 @@ export default async function({result, filter, context, opts, db, update}) {
     if (result.modifiedCount) {
       _result = await captureDataChange({
         target: opts.collectionName,
-        user: await getContextUser(context),
-        date: getContextDate(context),
         data: result.original,
-        update: update || result.update
+        update: update || result.update,
+        ...changed
       })
       assert(_result.result.ok, 'ok result required')
     }

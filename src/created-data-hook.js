@@ -7,7 +7,7 @@ export default async function({data, context, mode}) {
   dbg('data=%j, context=%j, mode=%j', data, context, mode)
 
   if (isCreate(mode)) {
-    const created = await getChanged({context})
+    const created = getChanged({context})
     return {
       ...data,
       created,
