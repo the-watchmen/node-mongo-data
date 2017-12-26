@@ -153,7 +153,9 @@ export default function(opts) {
         //
         // allow for non-restful client with complex filter v string id
         //
-        filter = _.isPlainObject(_id) ? _id : {[constants.ID_FIELD]: _id}
+        filter = _.isPlainObject(_id)
+          ? _id
+          : {[constants.ID_FIELD]: opts.isOid ? oid({value: id}) : id}
         $set = {$set: toDotNotation({target: _data})}
 
         result = await collection.findOneAndUpdate(filter, $set, {
@@ -209,7 +211,9 @@ export default function(opts) {
         //
         // allow for non-restful client with complex filter v string id
         //
-        const filter = _.isPlainObject(id) ? id : {[constants.ID_FIELD]: id}
+        const filter = _.isPlainObject(id)
+          ? id
+          : {[constants.ID_FIELD]: opts.isOid ? oid({value: id}) : id}
         // result = await collection.deleteOne(filter)
         result = await collection.findOneAndDelete(filter)
         // dbg('delete: result=%j', result)
