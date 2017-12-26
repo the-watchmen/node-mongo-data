@@ -3,6 +3,13 @@ module.exports = {
   env: {
     es6: true
   },
+  parserOptions: {
+    sourceType: 'module',
+    ecmaVersion: 2017,
+    ecmaFeatures: {
+      experimentalObjectRestSpread: true
+    }
+  },
   plugins: ['prettier'],
   rules: {
     'unicorn/no-abusive-eslint-disable': 'off',
