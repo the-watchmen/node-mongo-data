@@ -133,7 +133,11 @@ export function isUpdateOrUpsert(mode) {
 }
 
 export function isIdField(key) {
-  return key === constants.ID_FIELD || key.endsWith(`.${constants.ID_FIELD}`)
+  return isRootIdField(key) || key.endsWith(`.${constants.ID_FIELD}`)
+}
+
+export function isRootIdField(key) {
+  return key === constants.ID_FIELD
 }
 
 export function stripPlaceholders(path) {
