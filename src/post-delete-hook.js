@@ -1,10 +1,10 @@
 import assert from 'assert'
 import _ from 'lodash'
-import debug from 'debug'
+import debug from '@watchmen/debug'
 import {getName, getChanged, captureDataChange} from './helper'
 import constants from './constants'
 
-const dbg = debug('lib:mongo-data:post-delete-hook')
+const dbg = debug(__filename)
 
 export default async function({result, context, opts}) {
   dbg(

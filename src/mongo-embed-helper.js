@@ -1,8 +1,7 @@
-import assert from 'assert'
-import debug from 'debug'
+import debug from '@watchmen/debug'
 import _ from 'lodash'
 import {findOne} from '@watchmen/mongo-helpr'
-import {stringify, getType, getWithTypes, findDeepIndices, join} from '@watchmen/helpr'
+import {stringify, getType, getWithTypes, findDeepIndices, join, assert} from '@watchmen/helpr'
 import {
   isIdField,
   isCreate,
@@ -14,7 +13,7 @@ import {
 } from './helper'
 import constants from './constants'
 
-const dbg = debug('lib:mongo-data:mongo-embed-helper')
+const dbg = debug(__filename)
 
 const {MODES} = constants
 
@@ -39,7 +38,10 @@ export default function({contextPath, isAssociative}) {
     )
 
     if (isCreate(mode)) {
-      assert(data[constants.ID_FIELD], `${constants.ID_FIELD} is required for embedded create`)
+      assert(
+        data[constants.ID_FIELD],
+        () => `${constants.ID_FIELD} is required for embedded create`
+      )
     } else {
       assert(id, 'id field required')
     }

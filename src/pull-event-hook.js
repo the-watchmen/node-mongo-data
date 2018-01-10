@@ -1,8 +1,7 @@
-import assert from 'assert'
-import debug from 'debug'
-import {join} from '@watchmen/helpr'
+import debug from '@watchmen/debug'
+import {join, assert} from '@watchmen/helpr'
 
-const dbg = debug('lib:mongo-data:pull-event-hook')
+const dbg = debug(__filename)
 
 export default function({collectionName, path, field}) {
   return async function({id, db}) {
@@ -17,7 +16,8 @@ export default function({collectionName, path, field}) {
 
     assert(
       result.modifiedCount > 0,
-      `modifications expected: collection=${collectionName}, path=${path}, field=${field}, id=${id}`
+      () =>
+        `modifications expected: collection=${collectionName}, path=${path}, field=${field}, id=${id}`
     )
   }
 }

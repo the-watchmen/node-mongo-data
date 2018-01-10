@@ -1,11 +1,10 @@
-import assert from 'assert'
 import _ from 'lodash'
-import debug from 'debug'
-import {stringify, join, findDeepIndices} from '@watchmen/helpr'
+import debug from '@watchmen/debug'
+import {stringify, join, findDeepIndices, assert} from '@watchmen/helpr'
 import {toDotNotation} from '@watchmen/mongo-helpr'
 import {getName, getIdPath, stripPlaceholders} from './helper'
 
-const dbg = debug('lib:mongo-data:update-event-hook')
+const dbg = debug(__filename)
 
 export default function({target, path, fields}) {
   // when/if mongo supports multiple placeholders
@@ -153,7 +152,7 @@ function updateDeepNestedEventHook({target, path, fields}) {
             // dbg('$set=%j', $set)
 
             const result = await db.collection(target).updateOne({_id: record._id}, {$set})
-            assert(result.result.n > 0, `modifications expected for record with id=${id}`)
+            assert(result.result.n > 0, () => `modifications expected for record with id=${id}`)
           }
         }
       }

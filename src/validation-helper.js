@@ -1,10 +1,10 @@
 import joi from 'joi'
-import debug from 'debug'
+import debug from '@watchmen/debug'
 import {stringify} from '@watchmen/helpr'
 import constants from './constants'
 
 const {create, upsert} = constants.MODES
-const dbg = debug('lib:mongo-data:validation-helper')
+const dbg = debug(__filename)
 
 export function joiAssert({data, schema}) {
   const result = joi.validate(data, schema)

@@ -1,6 +1,6 @@
 import assert from 'assert'
 import _ from 'lodash'
-import debug from 'debug'
+import debug from '@watchmen/debug'
 import config from 'config'
 import {getDb, parseParam, findOne, oid} from '@watchmen/mongo-helpr'
 import {pretty, getType, getWithTypes, stringify, toDotNotation} from '@watchmen/helpr'
@@ -14,7 +14,7 @@ const defaultLimit = _.get(config, 'framework.data.defaultLimit', 10)
 const {MODES} = constants
 
 export default function(opts) {
-  const dbg = debug(`lib:mongo-data(${getName(opts)})`)
+  const dbg = debug(__filename, {tag: getName(opts)})
 
   function getGet({collectionName, docField, useStepsForGet}) {
     return async function(id) {

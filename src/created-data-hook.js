@@ -1,7 +1,7 @@
-import debug from 'debug'
+import debug from '@watchmen/debug'
 import {isCreate, getChanged} from './helper'
 
-const dbg = debug('lib:mongo-data:created-data-hook')
+const dbg = debug(__filename)
 
 export default async function({data, context, mode}) {
   dbg('data=%j, context=%j, mode=%j', data, context, mode)

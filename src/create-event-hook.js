@@ -1,11 +1,11 @@
 import assert from 'assert'
 import _ from 'lodash'
-import debug from 'debug'
+import debug from '@watchmen/debug'
 import {stringify, join} from '@watchmen/helpr'
 import {stripPlaceholders, getName} from './helper'
 import constants from './constants'
 
-const dbg = debug('lib:mongo-data:create-event-hook')
+const dbg = debug(__filename)
 
 // this will currently only handle paths with a _single_ mongo placeholder,
 // see create-deep-nested-event-hook for homegrown multiple placeholder support

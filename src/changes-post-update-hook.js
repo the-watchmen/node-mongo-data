@@ -1,10 +1,9 @@
-import assert from 'assert'
 import _ from 'lodash'
-import debug from 'debug'
-import {join, stringify} from '@watchmen/helpr'
+import debug from '@watchmen/debug'
+import {join, stringify, assert} from '@watchmen/helpr'
 import {getChanged, getName, captureDataChange} from './helper'
 
-const dbg = debug('lib:mongo-data:changes-post-update-hook')
+const dbg = debug(__filename)
 
 export default async function({result, filter, context, opts, db, update}) {
   dbg(
@@ -35,7 +34,7 @@ export default async function({result, filter, context, opts, db, update}) {
 
     assert(
       _result.result.n,
-      `match in collection=${opts.collectionName} with filter=${stringify(filter)} expected`
+      () => `match in collection=${opts.collectionName} with filter=${stringify(filter)} expected`
     )
 
     if (result.modifiedCount) {
