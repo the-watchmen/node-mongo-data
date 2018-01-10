@@ -2,7 +2,7 @@ import assert from 'assert'
 import _ from 'lodash'
 import debug from '@watchmen/debug'
 import config from 'config'
-import {getDb, parseParam, findOne, oid} from '@watchmen/mongo-helpr'
+import {getDb, parseParam, findOne} from '@watchmen/mongo-helpr'
 import {pretty, getType, getWithTypes, stringify, toDotNotation} from '@watchmen/helpr'
 import {registerEvent, getName, runHook, getSyntheticResult} from './helper'
 import constants from './constants'
@@ -18,10 +18,8 @@ export default function(opts) {
 
   function getGet({collectionName, docField, useStepsForGet}) {
     return async function(id) {
-      dbg('get: id=%o, type=%o', id, getType(id))
-      const query = _.isPlainObject(id)
-        ? id
-        : {[constants.ID_FIELD]: opts.isOid ? oid({value: id}) : id}
+      dbg('get: id=%o, type=%o', stringify(id), getType(id))
+      const query = _.isPlainObject(id) ? id : {[constants.ID_FIELD]: id}
       if (useStepsForGet) {
         assert(!docField, 'docField is not compatible with useStepsForGet')
         const _steps = await getSteps({opts: _.omit(opts, 'queryHook'), query})
@@ -153,9 +151,7 @@ export default function(opts) {
         //
         // allow for non-restful client with complex filter v string id
         //
-        filter = _.isPlainObject(_id)
-          ? _id
-          : {[constants.ID_FIELD]: opts.isOid ? oid({value: id}) : id}
+        filter = _.isPlainObject(_id) ? _id : {[constants.ID_FIELD]: id}
         $set = {$set: toDotNotation({target: _data})}
 
         result = await collection.findOneAndUpdate(filter, $set, {
@@ -211,9 +207,7 @@ export default function(opts) {
         //
         // allow for non-restful client with complex filter v string id
         //
-        const filter = _.isPlainObject(id)
-          ? id
-          : {[constants.ID_FIELD]: opts.isOid ? oid({value: id}) : id}
+        const filter = _.isPlainObject(id) ? id : {[constants.ID_FIELD]: id}
         // result = await collection.deleteOne(filter)
         result = await collection.findOneAndDelete(filter)
         // dbg('delete: result=%j', result)
