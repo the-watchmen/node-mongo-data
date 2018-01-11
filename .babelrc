@@ -9,5 +9,7 @@
       }
     ],
     "stage-0"
-  ]
+  ],
+  "sourceMaps": "inline",
+  "retainLines": true
 }

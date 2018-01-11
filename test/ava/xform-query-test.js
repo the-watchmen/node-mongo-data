@@ -1,11 +1,11 @@
 import test from 'ava'
 import _ from 'lodash'
-import debug from 'debug'
+import debug from '@watchmen/debug'
 import {isFloat} from '@watchmen/helpr'
 import {chill} from '@watchmen/test-helpr'
 import xformQuery from '../../src/xform-query'
 
-const dbg = debug('test:xform-params')
+const dbg = debug(__filename)
 
 test('xformQuery: auto', async t => {
   const result = await xformQuery({

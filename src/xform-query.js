@@ -1,8 +1,8 @@
 import _ from 'lodash'
-import debug from 'debug'
+import debug from '@watchmen/debug'
 import {parseValue, isListed, stringify} from '@watchmen/helpr'
 
-const dbg = debug('lib:mongo-data:xform-query')
+const dbg = debug(__filename)
 
 export default async function(query, {blackList, omitKeys = [], xforms = {}, matchers = []} = {}) {
   dbg('args=%o', stringify(arguments))

@@ -1,13 +1,12 @@
-import assert from 'assert'
-import debug from 'debug'
+import debug from '@watchmen/debug'
 import _ from 'lodash'
 import mongodb from 'mongodb'
 import {getNextSequence, assertNone, getDb, sanitizeKeys} from '@watchmen/mongo-helpr'
-import {join, isLike, SEPARATOR, deepClean} from '@watchmen/helpr'
+import {join, isLike, SEPARATOR, deepClean, assert} from '@watchmen/helpr'
 import constants from './constants'
 import xformQuery from './xform-query'
 
-const dbg = debug('lib:mongo-data:helper')
+const dbg = debug(__filename)
 
 const mark = '::'
 
@@ -134,7 +133,11 @@ export function isUpdateOrUpsert(mode) {
 }
 
 export function isIdField(key) {
-  return key === constants.ID_FIELD || key.endsWith(`.${constants.ID_FIELD}`)
+  return isRootIdField(key) || key.endsWith(`.${constants.ID_FIELD}`)
+}
+
+export function isRootIdField(key) {
+  return key === constants.ID_FIELD
 }
 
 export function stripPlaceholders(path) {
@@ -178,7 +181,7 @@ export function asFunctionArray(o) {
     return []
   }
   if (_.isArray(o)) {
-    assert(_.every(o, _.isFunction), `all elements of ${o} must be functions`)
+    assert(_.every(o, _.isFunction), () => `all elements of ${o} must be functions`)
     return o
   }
   if (_.isFunction(o)) {

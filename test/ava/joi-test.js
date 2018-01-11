@@ -1,10 +1,10 @@
 import test from 'ava'
 import joi from 'joi'
-import debug from 'debug'
+import debug from '@watchmen/debug'
 import iso6391 from 'iso-639-1'
 import {pretty} from '@watchmen/helpr'
 
-const dbg = debug('test:joi')
+const dbg = debug(__filename)
 
 test('joi: basic', t => {
   const schema = joi

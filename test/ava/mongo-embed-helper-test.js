@@ -1,5 +1,5 @@
 import test from 'ava'
-import debug from 'debug'
+import debug from '@watchmen/debug'
 import {initFixture} from '@watchmen/mongo-test-helpr'
 import {stringify} from '@watchmen/helpr'
 import {getDb} from '@watchmen/mongo-helpr'
@@ -21,7 +21,7 @@ const opts = {
 
 const _id = 'c1'
 
-const dbg = debug('test:shared:mongo-embed-helper')
+const dbg = debug(__filename)
 
 test('createHook', async t => {
   const db = await getDb()
