@@ -11,7 +11,7 @@
     "pretest": "xo",
     "test": "npm run ava",
     "prebuild": "npm run test",
-    "build": "babel ./src -d ./dist"
+    "build": "babel src -d dist"
   },
   "dependencies": {
     "@watchmen/debug": "1.1.0",
@@ -37,7 +37,7 @@
     "eslint-config-prettier": "2.9.0",
     "eslint-plugin-prettier": "2.4.0",
     "iso-639-1": "2.0.3",
-    "prettier": "1.10.1",
+    "prettier": "1.10.2",
     "xo": "0.18.2"
   },
   "xo": {
