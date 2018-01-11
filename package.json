@@ -1,6 +1,6 @@
 {
   "name": "@watchmen/mongo-data",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "mongo crud stuff",
   "main": "dist/index.js",
   "repository": "the-watchmen/node-mongo-data",
