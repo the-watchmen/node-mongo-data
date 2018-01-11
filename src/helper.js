@@ -254,9 +254,22 @@ export function getContextDate({context}) {
 }
 
 export function getContextUser({context}) {
-  // presumably user is set by https://github.com/auth0/express-jwt,
-  // but app can tweak value of user at the express level...
-  return context.user
+  // presumably request.user is obtained via jwt and set by https://github.com/auth0/express-jwt.
+  // standardUser must be derived from that and set somewhere up the call chain, for example,
+  // in the "main" express setup:
+  //
+  // app.use(
+  //   jwt({secret: secretOrPublicKey, credentialsRequired}).unless({path: whitelist}),
+  //   (req, res, next) => {
+  //     const {user} = req
+  //     if (user) {
+  //       req.standardUser = getStandardUser({user}) // <--- here
+  //     }
+  //     next()
+  //   }
+  // )
+  //
+  return context.standardUser
 }
 
 export function getChanged({context}) {
