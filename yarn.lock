@@ -96,9 +96,9 @@
   dependencies:
     arrify "^1.0.1"
 
-"@watchmen/debug@1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@watchmen/debug/-/debug-1.1.0.tgz#4bd1161eb233605175aff93bd80a05ab42328b84"
+"@watchmen/debug@1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@watchmen/debug/-/debug-1.1.1.tgz#9d85dad083ff1769a9d32c26be62bf9d64cade3a"
   dependencies:
     debug ">=3"
     find-root ">=1.1"
