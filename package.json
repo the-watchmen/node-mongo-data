@@ -1,6 +1,6 @@
 {
   "name": "@watchmen/mongo-data",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "mongo crud stuff",
   "main": "dist/index.js",
   "repository": "the-watchmen/node-mongo-data",
@@ -14,7 +14,7 @@
     "build": "babel src -d dist"
   },
   "dependencies": {
-    "@watchmen/debug": "1.1.0",
+    "@watchmen/debug": "1.1.1",
     "@watchmen/helpr": "2.3.1",
     "@watchmen/mongo-helpr": "1.1.0",
     "babel-polyfill": "6.26.0",
