@@ -47,13 +47,11 @@ test('xform custom async', async t => {
     {[beforeKey]: beforeVal},
     {
       xforms: {
-        [beforeKey]: async ({result, key, value}) => {
+        [beforeKey]: async ({value}) => {
           t.is(value, beforeVal)
           const actual = await chill({millis: 100, resolution: afterVal})
           t.is(actual, afterVal)
-          result[afterKey] = actual
-          delete result[key]
-          return result
+          return {[afterKey]: actual}
         }
       }
     }

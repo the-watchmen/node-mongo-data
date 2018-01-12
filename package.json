@@ -7,7 +7,7 @@
   "license": "ISC",
   "scripts": {
     "ava": "cross-env NODE_ENV=auto ava -s test/ava",
-    "ava-debug": "cross-env DEBUG=test:*,lib:* NODE_ENV=auto ava -s",
+    "ava-debug": "cross-env DEBUG=test:*,lib:*,dbg:* NODE_ENV=auto ava -s",
     "pretest": "xo",
     "test": "npm run ava",
     "prebuild": "npm run test",
@@ -45,10 +45,7 @@
   },
   "ava": {
     "babel": "inherit",
-    "require": [
-      "babel-register",
-      "babel-polyfill"
-    ]
+    "require": ["babel-register", "babel-polyfill"]
   },
   "publishConfig": {
     "access": "public"
