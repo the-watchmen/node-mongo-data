@@ -26,7 +26,7 @@ export default async function(query, {blackList, omitKeys = [], xforms = {}, mat
           result[xform] = value
           key = xform
         } else if (_.isFunction(xform)) {
-          result = await xform({result, key, value})
+          Object.assign(result, await xform({key, value}))
           continue
         } else {
           throw new TypeError(`unexpected value for xforms[${key}]=${xform}`)
