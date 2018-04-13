@@ -1,7 +1,7 @@
 import assert from 'assert'
+import config from 'config'
 import _ from 'lodash'
 import debug from '@watchmen/debug'
-import config from 'config'
 import {getDb, parseParam, findOne} from '@watchmen/mongo-helpr'
 import {pretty, getType, getWithTypes, stringify, toDotNotation} from '@watchmen/helpr'
 import {registerEvent, getName, runHook, getSyntheticResult} from './helper'
@@ -64,17 +64,21 @@ export default function(opts) {
       const collection = db.collection(collectionName)
 
       const _steps = await getSteps({opts, query, context})
-
-      // mongo aggregation count magic
-      //
-      _steps.push({$group: {_id: null, count: {$sum: 1}}})
-
-      dbg('meta: steps=%s', pretty(_steps))
-
-      const result = await collection.aggregate(_steps, {allowDiskUse: true}).toArray()
-
-      dbg('get-meta: result=%o', result)
-      return result.length ? result[0] : {count: 0}
+      let count = 0
+      if (_.isEqual(_steps, [{$match: {}}])) {
+        dbg('meta: no steps, using count()')
+        count = await collection.count()
+      } else {
+        _steps.push({$count: 'count'})
+        dbg('meta: steps=%s', pretty(_steps))
+        const result = await collection.aggregate(_steps, {allowDiskUse: true}).toArray()
+        dbg('meta: result=%o', result)
+        if (result.length === 1) {
+          count = result[0].count || 0
+        }
+      }
+      dbg('get-meta: count=%o', count)
+      return {count}
     }
   }
 
