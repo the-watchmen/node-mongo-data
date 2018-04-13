@@ -134,7 +134,7 @@ export default function(opts) {
       const db = await getDb()
       isValid && assert(await isValid({...opts, db, data, context, mode}))
       const collection = db.collection(collectionName)
-      const _data = await runHook({
+      let _data = await runHook({
         hook: opts.dataHook,
         flowKey: 'data',
         data,
@@ -144,6 +144,7 @@ export default function(opts) {
         opts
       })
       const _id = id || (isUpsert && idHook && (await idHook({data: _data, db, opts, context})))
+      delete _data._id
       let filter
       let result
       let actualId = _id

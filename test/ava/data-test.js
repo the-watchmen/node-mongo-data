@@ -64,7 +64,7 @@ test('create', async t => {
 test('update', async t => {
   const db = await getDb()
   await initFixture({db, collectionName, docs: [{foo: 'bar'}]})
-  let result = await data.update({id: {foo: 'bar'}, data: {foo: 'baz'}})
+  let result = await data.update({id: {foo: 'bar'}, data: {_id: 'omit', foo: 'baz'}})
   t.truthy(result.result.ok)
   t.truthy(eventHookFlags.update)
   result = await findOne({collectionName})
