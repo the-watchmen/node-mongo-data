@@ -72,6 +72,13 @@ test('update', async t => {
   t.truthy(isLike({actual: result, expected: {foo: 'baz'}}))
 })
 
+test('meta', async t => {
+  const db = await getDb()
+  await initFixture({db, collectionName, docs: [{foo: 'bar'}]})
+  let result = await data.meta({query: {}, context: {}})
+  t.truthy(isLike({actual: result, expected: {count: 1}}))
+})
+
 test('update: nested', async t => {
   const db = await getDb()
   await initFixture({db, collectionName, docs: [{foo: {bar: {bim: true, bam: true}}}]})
