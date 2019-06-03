@@ -10,16 +10,16 @@ import updateEventHook from './update-event-hook'
 import xformQuery from './xform-query'
 
 export {
-  changesPostUpdateHook,
-  constants,
-  createEventHook,
-  createdDataHook,
-  getData,
-  getEmbedHooks,
-  postDeleteHook,
-  pullEventHook,
-  updateEventHook,
-  xformQuery
+	changesPostUpdateHook,
+	constants,
+	createEventHook,
+	createdDataHook,
+	getData,
+	getEmbedHooks,
+	postDeleteHook,
+	pullEventHook,
+	updateEventHook,
+	xformQuery
 }
 export * from './helper'
 export * from './validation-helper'
