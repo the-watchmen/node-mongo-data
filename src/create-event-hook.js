@@ -18,48 +18,48 @@ const dbg = debug(__filename)
 // ref: https://jira.mongodb.org/browse/SERVER-27089
 //
 export default function({target, path, fields, filterHook}) {
-  dbg('target=%o, path=%o, fields=%o', target, path, fields)
-  assert(target && path && filterHook, 'target, path and filterHook required')
+	dbg('target=%o, path=%o, fields=%o', target, path, fields)
+	assert(target && path && filterHook, 'target, path and filterHook required')
 
-  const defaultFilterIdPath = join([
-    ...stripPlaceholders(path)
-      .split('.')
-      .slice(0, -1),
-    constants.ID_FIELD
-  ])
+	const defaultFilterIdPath = join([
+		...stripPlaceholders(path)
+			.split('.')
+			.slice(0, -1),
+		constants.ID_FIELD
+	])
 
-  dbg('default-filter-id-path=%o', defaultFilterIdPath)
+	dbg('default-filter-id-path=%o', defaultFilterIdPath)
 
-  return async function({opts, id, data, db, context}) {
-    dbg(
-      'target=%o, entity=%o, id=%o, data=%o, context=%o, mode=%o',
-      target,
-      getName(opts),
-      id,
-      stringify(data),
-      stringify(context)
-    )
+	return async function({opts, id, data, db, context}) {
+		dbg(
+			'target=%o, entity=%o, id=%o, data=%o, context=%o, mode=%o',
+			target,
+			getName(opts),
+			id,
+			stringify(data),
+			stringify(context)
+		)
 
-    if (!data[constants.ID_FIELD]) {
-      data[constants.ID_FIELD] = id
-    }
+		if (!data[constants.ID_FIELD]) {
+			data[constants.ID_FIELD] = id
+		}
 
-    const filter = await filterHook({opts, id, data, context, db, defaultFilterIdPath})
-    const pickedData = fields ? _.pick(data, [...fields, constants.ID_FIELD]) : data
+		const filter = await filterHook({opts, id, data, context, db, defaultFilterIdPath})
+		const pickedData = fields ? _.pick(data, [...fields, constants.ID_FIELD]) : data
 
-    dbg(
-      'target=%o, id=%o, filter=%o, path=%o, picked-data=%o',
-      target,
-      id,
-      filter,
-      path,
-      stringify(pickedData)
-    )
+		dbg(
+			'target=%o, id=%o, filter=%o, path=%o, picked-data=%o',
+			target,
+			id,
+			filter,
+			path,
+			stringify(pickedData)
+		)
 
-    const result = await db.collection(target).updateMany(filter, {$push: {[path]: pickedData}})
+		const result = await db.collection(target).updateMany(filter, {$push: {[path]: pickedData}})
 
-    // dbg('result=%o', result)
-    assert(result.result.ok, 'ok result required')
-    dbg('modified-count=%o', result.modifiedCount)
-  }
+		// dbg('result=%o', result)
+		assert(result.result.ok, 'ok result required')
+		dbg('modified-count=%o', result.modifiedCount)
+	}
 }

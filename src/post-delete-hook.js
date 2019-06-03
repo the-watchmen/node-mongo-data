@@ -7,22 +7,22 @@ import constants from './constants'
 const dbg = debug(__filename)
 
 export default async function({result, context, opts}) {
-  dbg(
-    'target=%o, result=%o, context=%o',
-    getName(opts),
-    _.pick(result, ['matchedCount', 'upsertedCount', 'modifiedCount', 'path', 'filter']),
-    context
-  )
+	dbg(
+		'target=%o, result=%o, context=%o',
+		getName(opts),
+		_.pick(result, ['matchedCount', 'upsertedCount', 'modifiedCount', 'path', 'filter']),
+		context
+	)
 
-  if (result.result.n) {
-    const changed = getChanged({context})
-    const _result = await captureDataChange({
-      target: opts.collectionName,
-      mode: constants.MODES.delete,
-      data: result.original,
-      update: result.update,
-      ...changed
-    })
-    assert(_result.result.ok, 'ok result required')
-  }
+	if (result.result.n) {
+		const changed = getChanged({context})
+		const _result = await captureDataChange({
+			target: opts.collectionName,
+			mode: constants.MODES.delete,
+			data: result.original,
+			update: result.update,
+			...changed
+		})
+		assert(_result.result.ok, 'ok result required')
+	}
 }

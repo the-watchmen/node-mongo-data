@@ -14,326 +14,333 @@ const defaultLimit = _.get(config, 'framework.data.defaultLimit', 10)
 const {MODES} = constants
 
 export default function(opts) {
-  const dbg = debug(__filename, {tag: getName(opts)})
+	const dbg = debug(__filename, {tag: getName(opts)})
 
-  function getGet({collectionName, docField, useStepsForGet}) {
-    return async function(id) {
-      dbg('get: id=%o, type=%o', stringify(id), getType(id))
-      const query = _.isPlainObject(id) ? id : {[constants.ID_FIELD]: id}
-      if (useStepsForGet) {
-        assert(!docField, 'docField is not compatible with useStepsForGet')
-        const _steps = await getSteps({opts: _.omit(opts, 'queryHook'), query})
-        dbg('get: steps=%s', pretty(_steps))
-        return findOne({collectionName, steps: _steps})
-      }
-      return findOne({collectionName, query})
-    }
-  }
+	function getGet({collectionName, docField, useStepsForGet}) {
+		return async function(id) {
+			dbg('get: id=%o, type=%o', stringify(id), getType(id))
+			const query = _.isPlainObject(id) ? id : {[constants.ID_FIELD]: id}
+			if (useStepsForGet) {
+				assert(!docField, 'docField is not compatible with useStepsForGet')
+				const _steps = await getSteps({opts: _.omit(opts, 'queryHook'), query})
+				dbg('get: steps=%s', pretty(_steps))
+				return findOne({collectionName, steps: _steps})
+			}
 
-  function getIndex({collectionName, docField}) {
-    const opts = arguments[0]
-    return async function({query, context}) {
-      const {sort, offset = 0, limit = defaultLimit} = query
-      const _limit = Math.min(limit, maxLimit)
-      const db = await getDb()
-      const collection = db.collection(collectionName)
+			return findOne({collectionName, query})
+		}
+	}
 
-      const _steps = await getSteps({opts, query, sort, context})
+	function getIndex({collectionName, docField}) {
+		const opts = arguments[0]
+		return async function({query, context}) {
+			const {sort, offset = 0, limit = defaultLimit} = query
+			const _limit = Math.min(limit, maxLimit)
+			const db = await getDb()
+			const collection = db.collection(collectionName)
 
-      !_.isEmpty(sort) && _steps.push({$sort: getSort({sort, prefix: docField})})
-      _steps.push({$skip: offset}, {$limit: _limit})
+			const _steps = await getSteps({opts, query, sort, context})
 
-      dbg('index: steps=%s', pretty(_steps))
+			!_.isEmpty(sort) && _steps.push({$sort: getSort({sort, prefix: docField})})
+			_steps.push({$skip: offset}, {$limit: _limit})
 
-      const result = await collection.aggregate(_steps, {allowDiskUse: true}).toArray()
-      dbg('index: result.length=%o', result.length)
-      dbg('index: result[0]=%s', pretty(result[0]))
+			dbg('index: steps=%s', pretty(_steps))
 
-      return docField
-        ? result.map(elt => {
-            return elt[docField]
-          })
-        : result
-    }
-  }
+			const result = await collection.aggregate(_steps, {allowDiskUse: true}).toArray()
+			dbg('index: result.length=%o', result.length)
+			dbg('index: result[0]=%s', pretty(result[0]))
 
-  function getMeta({collectionName}) {
-    const opts = arguments[0]
-    return async function({query, context}) {
-      const db = await getDb()
-      const collection = db.collection(collectionName)
+			return docField
+				? result.map(elt => {
+						return elt[docField]
+				  })
+				: result
+		}
+	}
 
-      const _steps = await getSteps({opts, query, context})
-      let count = 0
-      if (_.isEqual(_steps, [{$match: {}}])) {
-        dbg('meta: no steps, using count()')
-        count = await collection.count()
-      } else {
-        _steps.push({$count: 'count'})
-        dbg('meta: steps=%s', pretty(_steps))
-        const result = await collection.aggregate(_steps, {allowDiskUse: true}).toArray()
-        dbg('meta: result=%o', result)
-        if (result.length === 1) {
-          count = result[0].count || 0
-        }
-      }
-      dbg('get-meta: count=%o', count)
-      return {count}
-    }
-  }
+	function getMeta({collectionName}) {
+		const opts = arguments[0]
+		return async function({query, context}) {
+			const db = await getDb()
+			const collection = db.collection(collectionName)
 
-  function getCreate({collectionName, isValid, createHook, idHook}) {
-    const opts = arguments[0]
-    const mode = MODES.create
-    const emit = registerEvent({mode, opts})
-    return async function({data = {}, context = {}}) {
-      dbg('create: data=%o, context=%o', stringify(data), getWithTypes(context))
-      assert(data, 'data required')
-      const db = await getDb()
-      isValid && assert(await isValid({...opts, db, data, context, mode}))
-      const collection = db.collection(collectionName)
-      const _data = await runHook({
-        hook: opts.dataHook,
-        flowKey: 'data',
-        data,
-        db,
-        context,
-        mode,
-        opts
-      })
-      if (idHook) {
-        _data[constants.ID_FIELD] = await idHook({data: _data, db, opts, context})
-      }
-      // dbg('create: validated data=%o', stringify(_data))
-      const result = createHook
-        ? await createHook({data: _data, db, opts, context})
-        : await collection.insertOne(_data)
-      assert.equal(result.insertedCount, 1)
-      assert(result.insertedId)
-      emit && (await emit({data: _data, db, opts, context}))
-      return result
-    }
-  }
+			const _steps = await getSteps({opts, query, context})
+			let count = 0
+			if (_.isEqual(_steps, [{$match: {}}])) {
+				dbg('meta: no steps, using count()')
+				count = await collection.count()
+			} else {
+				_steps.push({$count: 'count'})
+				dbg('meta: steps=%s', pretty(_steps))
+				const result = await collection.aggregate(_steps, {allowDiskUse: true}).toArray()
+				dbg('meta: result=%o', result)
+				if (result.length === 1) {
+					count = result[0].count || 0
+				}
+			}
 
-  function getUpdate({collectionName, isValid, idHook, updateHook, isUpsert, postUpdateHook}) {
-    const opts = arguments[0]
-    const mode = isUpsert ? MODES.upsert : MODES.update
-    // currently no upsert mode for events
-    const emitCreate = registerEvent({mode: MODES.create, opts})
-    const emitUpdate = registerEvent({mode: MODES.update, opts})
-    return async function({id, data = {}, context = {}}) {
-      dbg(
-        'update: id=%o, type=%o, data=%o, context=%o, is-upsert=%o',
-        id,
-        getType(id),
-        data,
-        context,
-        isUpsert
-      )
-      assert(data, 'data required')
-      const db = await getDb()
-      isValid && assert(await isValid({...opts, db, data, context, mode}))
-      const collection = db.collection(collectionName)
-      let _data = await runHook({
-        hook: opts.dataHook,
-        flowKey: 'data',
-        data,
-        db,
-        context,
-        mode,
-        opts
-      })
-      const _id = id || (isUpsert && idHook && (await idHook({data: _data, db, opts, context})))
-      delete _data._id
-      let filter
-      let result
-      let actualId = _id
-      let $set
-      if (updateHook) {
-        result = await updateHook({id: _id, data: _data, db, opts, context})
-        // dbg('update: update-hook-result=%j', result)
-      } else {
-        //
-        // allow for non-restful client with complex filter v string id
-        //
-        filter = _.isPlainObject(_id) ? _id : {[constants.ID_FIELD]: id}
-        $set = {$set: toDotNotation({target: _data})}
+			dbg('get-meta: count=%o', count)
+			return {count}
+		}
+	}
 
-        result = await collection.findOneAndUpdate(filter, $set, {
-          upsert: isUpsert || opts.isUpsert
-        })
+	function getCreate({collectionName, isValid, createHook, idHook}) {
+		const opts = arguments[0]
+		const mode = MODES.create
+		const emit = registerEvent({mode, opts})
+		return async function({data = {}, context = {}}) {
+			dbg('create: data=%o, context=%o', stringify(data), getWithTypes(context))
+			assert(data, 'data required')
+			const db = await getDb()
+			isValid && assert(await isValid({...opts, db, data, context, mode}))
+			const collection = db.collection(collectionName)
+			const _data = await runHook({
+				hook: opts.dataHook,
+				flowKey: 'data',
+				data,
+				db,
+				context,
+				mode,
+				opts
+			})
+			if (idHook) {
+				_data[constants.ID_FIELD] = await idHook({data: _data, db, opts, context})
+			}
 
-        result = getSyntheticResult({result, data: _data})
-        // dbg('update: synthetic-result=%j', result)
-        if (!result.matchedCount) {
-          return null
-        }
-        actualId = result.id
-      }
+			// dbg('create: validated data=%o', stringify(_data))
+			const result = createHook
+				? await createHook({data: _data, db, opts, context})
+				: await collection.insertOne(_data)
+			assert.strictEqual(result.insertedCount, 1)
+			assert(result.insertedId)
+			emit && (await emit({data: _data, db, opts, context}))
+			return result
+		}
+	}
 
-      result &&
-        postUpdateHook &&
-        (await postUpdateHook({
-          result,
-          id: actualId,
-          filter,
-          data,
-          context,
-          opts,
-          db,
-          update: $set
-        }))
+	function getUpdate({collectionName, isValid, idHook, updateHook, isUpsert, postUpdateHook}) {
+		const opts = arguments[0]
+		const mode = isUpsert ? MODES.upsert : MODES.update
+		// currently no upsert mode for events
+		const emitCreate = registerEvent({mode: MODES.create, opts})
+		const emitUpdate = registerEvent({mode: MODES.update, opts})
+		return async function({id, data = {}, context = {}}) {
+			dbg(
+				'update: id=%o, type=%o, data=%o, context=%o, is-upsert=%o',
+				id,
+				getType(id),
+				data,
+				context,
+				isUpsert
+			)
+			assert(data, 'data required')
+			const db = await getDb()
+			isValid && assert(await isValid({...opts, db, data, context, mode}))
+			const collection = db.collection(collectionName)
+			const _data = await runHook({
+				hook: opts.dataHook,
+				flowKey: 'data',
+				data,
+				db,
+				context,
+				mode,
+				opts
+			})
+			const _id = id || (isUpsert && idHook && (await idHook({data: _data, db, opts, context})))
+			delete _data._id
+			let filter
+			let result
+			let actualId = _id
+			let $set
+			if (updateHook) {
+				result = await updateHook({id: _id, data: _data, db, opts, context})
+				// dbg('update: update-hook-result=%j', result)
+			} else {
+				//
+				// allow for non-restful client with complex filter v string id
+				//
+				filter = _.isPlainObject(_id) ? _id : {[constants.ID_FIELD]: id}
+				$set = {$set: toDotNotation({target: _data})}
 
-      if (result && (result.matchedCount || result.upsertedCount)) {
-        if (result.modifiedCount) {
-          emitUpdate && (await emitUpdate({data: _data, id: actualId, db, opts, context}))
-        } else if (isUpsert && result.upsertedCount) {
-          emitCreate && (await emitCreate({data: _data, id: actualId, db, opts, context}))
-        }
+				result = await collection.findOneAndUpdate(filter, $set, {
+					upsert: isUpsert || opts.isUpsert
+				})
 
-        return result
-      }
+				result = getSyntheticResult({result, data: _data})
+				// dbg('update: synthetic-result=%j', result)
+				if (!result.matchedCount) {
+					return null
+				}
 
-      return null
-    }
-  }
+				actualId = result.id
+			}
 
-  function getDelete({collectionName, deleteHook, postDeleteHook}) {
-    const opts = arguments[0]
-    const emit = registerEvent({mode: MODES.delete, opts})
-    return async function({id, context = {}}) {
-      dbg('delete: id=%o, context=%o', id, context)
-      const db = await getDb()
-      const collection = db.collection(collectionName)
-      let result
-      if (deleteHook) {
-        result = await deleteHook({id, db, opts, context})
-      } else {
-        //
-        // allow for non-restful client with complex filter v string id
-        //
-        const filter = _.isPlainObject(id) ? id : {[constants.ID_FIELD]: id}
-        // result = await collection.deleteOne(filter)
-        result = await collection.findOneAndDelete(filter)
-        // dbg('delete: result=%j', result)
-        result = getSyntheticResult({result})
-        // dbg('delete: synthetic-result=%j', result)
-        if (!result.matchedCount) {
-          return null
-        }
-      }
+			result &&
+				postUpdateHook &&
+				(await postUpdateHook({
+					result,
+					id: actualId,
+					filter,
+					data,
+					context,
+					opts,
+					db,
+					update: $set
+				}))
 
-      result && postDeleteHook && (await postDeleteHook({result, context, opts, db}))
+			if (result && (result.matchedCount || result.upsertedCount)) {
+				if (result.modifiedCount) {
+					emitUpdate && (await emitUpdate({data: _data, id: actualId, db, opts, context}))
+				} else if (isUpsert && result.upsertedCount) {
+					emitCreate && (await emitCreate({data: _data, id: actualId, db, opts, context}))
+				}
 
-      if (result && (result.deletedCount || result.matchedCount)) {
-        emit && (await emit({id, db, opts, context}))
-        return result
-      }
+				return result
+			}
 
-      return null
-    }
-  }
+			return null
+		}
+	}
 
-  function getSort({sort, prefix}) {
-    const _prefix = prefix ? `${prefix}.` : ''
-    const _sort = _.reduce(
-      sort ? (Array.isArray(sort) ? sort : [sort]) : [],
-      (result, value) => {
-        if (value.startsWith('-')) {
-          result[`${_prefix}${value.substring(1)}`] = -1
-        } else {
-          result[`${_prefix}${value}`] = 1
-        }
-        return result
-      },
-      {}
-    )
-    // dbg('get-sort: sort=%o, result=%o', sort, _sort)
-    return _sort
-  }
+	function getDelete({collectionName, deleteHook, postDeleteHook}) {
+		const opts = arguments[0]
+		const emit = registerEvent({mode: MODES.delete, opts})
+		return async function({id, context = {}}) {
+			dbg('delete: id=%o, context=%o', id, context)
+			const db = await getDb()
+			const collection = db.collection(collectionName)
+			let result
+			if (deleteHook) {
+				result = await deleteHook({id, db, opts, context})
+			} else {
+				//
+				// allow for non-restful client with complex filter v string id
+				//
+				const filter = _.isPlainObject(id) ? id : {[constants.ID_FIELD]: id}
+				// result = await collection.deleteOne(filter)
+				result = await collection.findOneAndDelete(filter)
+				// dbg('delete: result=%j', result)
+				result = getSyntheticResult({result})
+				// dbg('delete: synthetic-result=%j', result)
+				if (!result.matchedCount) {
+					return null
+				}
+			}
 
-  function getQueryPostProcessor(opts) {
-    return async function({query, context}) {
-      const _query = await runHook({hook: opts.queryHook, flowKey: 'query', query, context})
-      dbg('query-post-processor: query=%o, context=%o, _query=%j', query, context, _query)
-      return _.reduce(
-        _query,
-        (result, value, key) => {
-          if (!['offset', 'limit', 'sort', 'nearLat', 'nearLon', 'nearMiles'].includes(key)) {
-            if (!key.startsWith('$')) {
-              // don't process mongo directives
-              if (Array.isArray(value)) {
-                value = {$in: value}
-              } else {
-                value = parseParam(value)
-              }
-            }
-            result[key] = value
-          }
-          return result
-        },
-        {}
-      )
-    }
-  }
+			result && postDeleteHook && (await postDeleteHook({result, context, opts, db}))
 
-  async function getSteps({opts, query, context, sort}) {
-    const {
-      distanceField = 'distance',
-      stepsHook,
-      steps = [],
-      postStepsHook,
-      postSteps = [],
-      docField: prefix
-    } = opts
-    const {nearLat, nearLon, nearMiles} = query
-    const result = []
+			if (result && (result.deletedCount || result.matchedCount)) {
+				emit && (await emit({id, db, opts, context}))
+				return result
+			}
 
-    const queryPostProcessor = getQueryPostProcessor(opts)
-    const _query = await queryPostProcessor({query, context})
-    dbg('get-steps: query=%o, _query=%o', stringify(query), stringify(_query))
+			return null
+		}
+	}
 
-    const geoStep = nearLat &&
-      nearLon && {
-        $geoNear: {
-          near: {type: 'Point', coordinates: [nearLon, nearLat]},
-          distanceField,
-          maxDistance: (nearMiles || nearMilesDefault) / mileToMeterMultiplier,
-          query: _query,
-          spherical: true,
-          distanceMultiplier: mileToMeterMultiplier,
-          limit: Number.MAX_SAFE_INTEGER
-        }
-      }
+	function getSort({sort, prefix}) {
+		const _prefix = prefix ? `${prefix}.` : ''
+		const _sort = _.reduce(
+			sort ? (Array.isArray(sort) ? sort : [sort]) : [],
+			(result, value) => {
+				if (value.startsWith('-')) {
+					result[`${_prefix}${value.substring(1)}`] = -1
+				} else {
+					result[`${_prefix}${value}`] = 1
+				}
 
-    if (geoStep) {
-      result.push(geoStep)
-    }
+				return result
+			},
+			{}
+		)
+		// dbg('get-sort: sort=%o, result=%o', sort, _sort)
+		return _sort
+	}
 
-    const _steps = stepsHook
-      ? await stepsHook({steps, query, context, queryPostProcessor, sort, prefix})
-      : steps
-    result.push(..._steps)
+	function getQueryPostProcessor(opts) {
+		return async function({query, context}) {
+			const _query = await runHook({hook: opts.queryHook, flowKey: 'query', query, context})
+			dbg('query-post-processor: query=%o, context=%o, _query=%j', query, context, _query)
+			return _.reduce(
+				_query,
+				(result, value, key) => {
+					if (!['offset', 'limit', 'sort', 'nearLat', 'nearLon', 'nearMiles'].includes(key)) {
+						if (!key.startsWith('$')) {
+							// don't process mongo directives
+							if (Array.isArray(value)) {
+								value = {$in: value}
+							} else {
+								value = parseParam(value)
+							}
+						}
 
-    // geoStep includes query, so it is mutually exclusive with a distinct $match step
-    //
-    geoStep || result.push({$match: _query})
+						result[key] = value
+					}
 
-    const _postSteps = postStepsHook
-      ? await postStepsHook({postSteps, query, context, queryPostProcessor, sort, prefix})
-      : postSteps
-    result.push(..._postSteps)
+					return result
+				},
+				{}
+			)
+		}
+	}
 
-    return result
-  }
+	async function getSteps({opts, query, context, sort}) {
+		const {
+			distanceField = 'distance',
+			stepsHook,
+			steps = [],
+			postStepsHook,
+			postSteps = [],
+			docField: prefix
+		} = opts
+		const {nearLat, nearLon, nearMiles} = query
+		const result = []
 
-  return {
-    get: getGet(opts),
-    index: getIndex(opts),
-    meta: getMeta(opts),
-    create: getCreate(opts),
-    update: getUpdate(opts),
-    upsert: getUpdate({...opts, isUpsert: true}),
-    delete: getDelete(opts)
-  }
+		const queryPostProcessor = getQueryPostProcessor(opts)
+		const _query = await queryPostProcessor({query, context})
+		dbg('get-steps: query=%o, _query=%o', stringify(query), stringify(_query))
+
+		const geoStep = nearLat &&
+			nearLon && {
+				$geoNear: {
+					near: {type: 'Point', coordinates: [nearLon, nearLat]},
+					distanceField,
+					maxDistance: (nearMiles || nearMilesDefault) / mileToMeterMultiplier,
+					query: _query,
+					spherical: true,
+					distanceMultiplier: mileToMeterMultiplier,
+					limit: Number.MAX_SAFE_INTEGER
+				}
+			}
+
+		if (geoStep) {
+			result.push(geoStep)
+		}
+
+		const _steps = stepsHook
+			? await stepsHook({steps, query, context, queryPostProcessor, sort, prefix})
+			: steps
+		result.push(..._steps)
+
+		// geoStep includes query, so it is mutually exclusive with a distinct $match step
+		//
+		geoStep || result.push({$match: _query})
+
+		const _postSteps = postStepsHook
+			? await postStepsHook({postSteps, query, context, queryPostProcessor, sort, prefix})
+			: postSteps
+		result.push(..._postSteps)
+
+		return result
+	}
+
+	return {
+		get: getGet(opts),
+		index: getIndex(opts),
+		meta: getMeta(opts),
+		create: getCreate(opts),
+		update: getUpdate(opts),
+		upsert: getUpdate({...opts, isUpsert: true}),
+		delete: getDelete(opts)
+	}
 }

@@ -6,48 +6,53 @@
   "repository": "the-watchmen/node-mongo-data",
   "license": "ISC",
   "scripts": {
-    "ava": "cross-env NODE_ENV=auto ava -s test/ava",
-    "ava-debug": "cross-env DEBUG=test:*,lib:*,dbg:* NODE_ENV=auto ava -s",
+    "ava": "cross-env DEBUG=test:*,lib:*,dbg:* NODE_ENV=auto ava -s",
     "pretest": "xo",
-    "test": "npm run ava",
-    "prebuild": "npm run test",
+    "test": "yarn ava test/ava",
+    "prebuild": "yarn test",
     "build": "babel src -d dist"
   },
   "dependencies": {
     "@watchmen/debug": "1.1.1",
-    "@watchmen/helpr": "2.3.5",
-    "@watchmen/mongo-helpr": "1.1.0",
-    "babel-polyfill": "6.26.0",
-    "config": "1.30.0",
-    "joi": "13.1.2",
-    "lodash": "4.17.5",
-    "mongodb": "3.0.6"
+    "@watchmen/helpr": "2.3.8",
+    "@watchmen/mongo-helpr": "1.3.0",
+    "config": "3.1.0",
+    "joi": "14.3.1",
+    "lodash": "4.17.11",
+    "mongodb": "3.2.6"
   },
   "devDependencies": {
+    "@babel/cli": "7.4.4",
+    "@babel/core": "7.4.5",
+    "@babel/polyfill": "7.4.4",
+    "@babel/preset-env": "7.4.5",
+    "@babel/register": "7.4.4",
     "@watchmen/mongo-test-helpr": "1.0.0",
     "@watchmen/test-helpr": "0.3.4",
-    "ava": "0.25.0",
-    "babel-cli": "6.26.0",
-    "babel-core": "6.26.0",
-    "babel-eslint": "8.2.2",
-    "babel-preset-env": "1.6.1",
-    "babel-preset-stage-0": "6.24.1",
-    "cross-env": "5.1.4",
-    "eslint": "4.19.1",
-    "eslint-config-prettier": "2.9.0",
-    "eslint-plugin-prettier": "2.6.0",
-    "iso-639-1": "2.0.3",
-    "prettier": "1.12.0",
-    "xo": "0.20.3"
+    "ava": "1.4.1",
+    "cross-env": "5.2.0",
+    "iso-639-1": "2.0.5",
+    "xo": "0.24.0"
   },
   "xo": {
-    "useEslintrc": true
+    "prettier": true,
+    "rules": {
+      "eslint-comments/disable-enable-pair": 0,
+      "capitalized-comments": 0,
+      "prefer-rest-params": 0,
+      "no-unused-expressions": [
+        2,
+        {
+          "allowShortCircuit": true,
+          "allowTernary": true
+        }
+      ]
+    }
   },
   "ava": {
-    "babel": "inherit",
     "require": [
-      "babel-register",
-      "babel-polyfill"
+      "@babel/register",
+      "@babel/polyfill"
     ]
   },
   "publishConfig": {
