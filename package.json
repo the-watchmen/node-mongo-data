@@ -1,6 +1,6 @@
 {
   "name": "@watchmen/mongo-data",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "mongo crud stuff",
   "main": "dist/index.js",
   "repository": "the-watchmen/node-mongo-data",
@@ -15,18 +15,18 @@
   "dependencies": {
     "@watchmen/debug": "1.1.1",
     "@watchmen/helpr": "2.3.8",
-    "@watchmen/mongo-helpr": "1.3.0",
-    "config": "3.1.0",
+    "@watchmen/mongo-helpr": "1.3.3",
+    "config": "3.2.2",
     "joi": "14.3.1",
-    "lodash": "4.17.11",
+    "lodash": "4.17.15",
     "mongodb": "3.2.6"
   },
   "devDependencies": {
-    "@babel/cli": "7.4.4",
-    "@babel/core": "7.4.5",
+    "@babel/cli": "7.5.5",
+    "@babel/core": "7.5.5",
     "@babel/polyfill": "7.4.4",
-    "@babel/preset-env": "7.4.5",
-    "@babel/register": "7.4.4",
+    "@babel/preset-env": "7.5.5",
+    "@babel/register": "7.5.5",
     "@watchmen/mongo-test-helpr": "1.0.0",
     "@watchmen/test-helpr": "0.3.4",
     "ava": "1.4.1",
