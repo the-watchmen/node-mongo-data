@@ -12,6 +12,7 @@ const nearMilesDefault = 10
 const maxLimit = _.get(config, 'framework.data.maxLimit', 200)
 const defaultLimit = _.get(config, 'framework.data.defaultLimit', 10)
 const {MODES} = constants
+/* eslint-disable complexity */
 
 export default function(opts) {
 	const dbg = debug(__filename, {tag: getName(opts)})
@@ -151,7 +152,7 @@ export default function(opts) {
 			let filter
 			let result
 			let actualId = _id
-			let $set
+			let ops
 			if (updateHook) {
 				result = await updateHook({id: _id, data: _data, db, opts, context})
 				// dbg('update: update-hook-result=%j', result)
@@ -160,9 +161,15 @@ export default function(opts) {
 				// allow for non-restful client with complex filter v string id
 				//
 				filter = _.isPlainObject(_id) ? _id : {[constants.ID_FIELD]: id}
-				$set = {$set: toDotNotation({target: _data})}
 
-				result = await collection.findOneAndUpdate(filter, $set, {
+				const {$inc} = _data
+				delete _data.$inc
+
+				const $set = _.isEmpty(_data) ? null : toDotNotation({target: _data})
+				ops = {...($set && {$set}), ...($inc && {$inc})}
+				dbg('update: ops=%O', ops)
+
+				result = await collection.findOneAndUpdate(filter, ops, {
 					upsert: isUpsert || opts.isUpsert
 				})
 
@@ -185,7 +192,7 @@ export default function(opts) {
 					context,
 					opts,
 					db,
-					update: $set
+					update: ops
 				}))
 
 			if (result && (result.matchedCount || result.upsertedCount)) {
