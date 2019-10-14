@@ -1,11 +1,13 @@
 import test from 'ava'
 import {isLike} from '@watchmen/helpr'
+import debug from '@watchmen/debug'
 import {initDb, initFixture} from '@watchmen/mongo-test-helpr'
 import {getDb, findOne} from '@watchmen/mongo-helpr'
 import getData from '../../src/data'
 import getEmbedHooks from '../../src/mongo-embed-helper'
 import {mongoIdHook} from '../../src/helper'
 
+const dbg = debug(__filename)
 let eventHookFlags = {}
 const collectionName = 'test'
 const embeddedCollectionName = 'embedded'
@@ -46,13 +48,13 @@ const embeddedOpts = {
 
 const embeddedData = getData(embeddedOpts)
 
-test.beforeEach(() => {
+test.beforeEach(async () => {
 	eventHookFlags = {}
+	const db = await getDb()
+	await initDb(db)
 })
 
 test('create', async t => {
-	const db = await getDb()
-	await initDb(db)
 	let result = await data.create({data: {foo: 'bar'}})
 	t.truthy(result.result.ok)
 	t.truthy(eventHookFlags.create)
@@ -90,8 +92,6 @@ test('update: nested', async t => {
 })
 
 test('upsert: create', async t => {
-	const db = await getDb()
-	await initDb(db)
 	let result = await data.upsert({id: '123', data: {foo: 'baz'}})
 	t.truthy(result.result.ok)
 	t.truthy(eventHookFlags.create)
@@ -179,4 +179,24 @@ test('upsert: embedded: update', async t => {
 	result = await findOne({collectionName})
 	t.truthy(result)
 	t.truthy(isLike({actual: result, expected: {nesters: [{_id: embeddedId, foo: 'baz'}]}}))
+})
+
+test('upsert inc', async t => {
+	const id = 'svc-1'
+	let result = await data.upsert({id, data: {foo: 'bar', $inc: {'count.call': 1}}})
+	t.truthy(result.result.ok)
+
+	let target = await data.get(id)
+	dbg('get=%o', target)
+	t.is(target._id, id)
+	t.is(target.count.call, 1)
+	t.is(target.foo, 'bar')
+
+	result = await data.upsert({id, data: {$inc: {'count.call': 1}}})
+	t.truthy(result.result.ok)
+
+	target = await data.get(id)
+	dbg('get=%o', target)
+	t.is(target._id, id)
+	t.is(target.count.call, 2)
 })
