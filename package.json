@@ -18,7 +18,7 @@
     "@watchmen/mongo-helpr": "1.3.3",
     "config": "3.2.2",
     "joi": "14.3.1",
-    "lodash": "4.17.15",
+    "lodash": "4.17.21",
     "mongodb": "3.2.6"
   },
   "devDependencies": {
